@@ -38,7 +38,7 @@ Resources:
                 - 'rekognition:DetectFaces'
               Resource: '*'
       Events:
-        BucketEvent1:
+        ObjectCreatedBucketEvent:
           Type: S3
           Properties:
             Bucket:
