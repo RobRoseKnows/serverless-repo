@@ -11,12 +11,13 @@ Parameters:
     Type: Number
     Default: 0.90
 
-  FillColor:
-    Description: The color we should fill the faces with.
-    AllowedPattern: '^#?(?:[0-9a-fA-F]{3}){1,2}$'
-    Default: '#FFF'
-
 Resources:
+  WatchBucket:
+    Type: 'AWS::S3::Bucket'
+
+  OutputBucket:
+    Type: 'AWS::S3::Bucket'
+
   rekognitionpython:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -24,15 +25,19 @@ Resources:
       Runtime: python3.6
       CodeUri: .
       Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
-      MemorySize: 128
-      Timeout: 3
+      MemorySize: 1280
+      Timeout: 60
       Policies:
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - 's3:GetObject'
-              Resource: 'arn:aws:s3:::*'
+              Resource: !Sub 'arn:aws:s3:::${WatchBucket}/*'
+            - Effect: Allow
+              Action:
+                - 's3:PutObject'
+              Resource: !Sub 'arm:aws:s3:::${OutputBucket}/*'
             - Effect: Allow
               Action:
                 - 'rekognition:DetectFaces'
@@ -45,8 +50,9 @@ Resources:
               Ref: Bucket1
             Events:
               - 's3:ObjectCreated:*'
-  WatchBucket:
-    Type: 'AWS::S3::Bucket'
 
-  OutputBucket:
-    Type: 'AWS::S3::Bucket'
+      Environment:
+        Variables:
+          OUTPUT_BUCKET: !Ref OutputBucket
+          FILL_THRESHOLD: !Ref ConfThreshold
+

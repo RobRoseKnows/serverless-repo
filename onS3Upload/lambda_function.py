@@ -1,21 +1,37 @@
 # Adapted from: https://github.com/awslabs/serverless-application-model/blob/master/examples/apps/rekognition-python/lambda_function.py
 
 import boto3
-from decimal import Decimal
 import json
 import urllib
+
+from PIL import Image, ImageDraw
 
 print('Loading function')
 
 rekognition = boto3.client('rekognition')
+s3 = boto3.client('s3')
 
 
-# --------------- Helper Functions to call Rekognition APIs ------------------
+# --------------- Helper Functions to call AWS APIs ------------------
 
 
 def detect_faces(bucket, key):
     response = rekognition.detect_faces(Image={"S3Object": {"Bucket": bucket, "Name": key}})
     return response
+
+def download_file(bucket, key):
+    s3.download_file(bucket, key, '/tmp/img')
+    return '/tmp/img'
+
+def upload_file(bucket, key, local_path):
+    response = s3.upload_file(local_path, bucket, key)
+    return response
+# --------------- PIL Methods -------------------
+
+def draw_rectangles(img_location, faces):
+    with open(img_location, 'rb') as f:
+        img = Image.open(io.BytesIO(f.read()))
+        img_format = img.format
 
 
 # --------------- Main handler ------------------
