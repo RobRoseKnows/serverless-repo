@@ -3,6 +3,7 @@
 import boto3
 import json
 import urllib
+import os
 
 from PIL import Image, ImageDraw
 
@@ -26,13 +27,36 @@ def download_file(bucket, key):
 def upload_file(bucket, key, local_path):
     response = s3.upload_file(local_path, bucket, key)
     return response
+
 # --------------- PIL Methods -------------------
 
-def draw_rectangles(img_location, faces):
+def load_image(img_location):
     with open(img_location, 'rb') as f:
         img = Image.open(io.BytesIO(f.read()))
         img_format = img.format
 
+    return img, img_format
+
+def draw_rectangles(img, faces):
+
+    draw = ImageDraw.Draw(img)
+
+    for face in faces:
+        x0 = face['BoundingBox']['Left']
+        y0 = face['BoundingBox']['Top']
+        width = face['BoundingBox']['Width']
+        height = face['BoundingBox']['Height']
+        x1 = x0 + width
+        y1 = y0 + height
+
+        draw.rectangle([x0, y0, x1, y1], fill='black', outline='black')
+
+    return img
+
+
+def save_image(img, img_format, location):
+    img.save(location, img_format)
+    return location
 
 # --------------- Main handler ------------------
 
@@ -51,9 +75,18 @@ def lambda_handler(event, context):
         response = detect_faces(bucket, key)
 
         # Print response to console.
-        print(response)
+        # print(response)
 
-        return response
+        faces = response['FaceDetails']
+
+        img_loc = download_file(bucket, key)
+
+        img, img_format = load_image(img_loc)
+
+        saved_to = save_image(img, img_format, "/tmp/out")
+
+        return upload_file(os.environ('OUTPUT_BUCKET'), key, saved_to)
+
     except Exception as e:
         print(e)
         print("Error processing object {} from bucket {}. ".format(key, bucket) +
