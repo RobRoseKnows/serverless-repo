@@ -47,7 +47,7 @@ Resources:
           Type: S3
           Properties:
             Bucket:
-              Ref: Bucket1
+              Ref: WatchBucket
             Events:
               - 's3:ObjectCreated:*'
 

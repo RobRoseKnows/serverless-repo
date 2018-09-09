@@ -83,6 +83,8 @@ def lambda_handler(event, context):
 
         img, img_format = load_image(img_loc)
 
+        img = draw_rectangles(img, faces)
+
         saved_to = save_image(img, img_format, "/tmp/out")
 
         return upload_file(os.environ('OUTPUT_BUCKET'), key, saved_to)
