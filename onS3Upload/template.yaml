@@ -2,15 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: An Amazon S3 trigger that uses rekognition APIs to detect faces and then blurs them.
 
-Parameters:
-
-  ConfThreshold:
-    Description: The minimum confidence Rekognition should have for a given face. Float between 0 and 1.
-    MinValue: 0.0
-    MaxValue: 1.0
-    Type: Number
-    Default: 0.90
-
 Resources:
   WatchBucket:
     Type: 'AWS::S3::Bucket'
@@ -23,21 +14,19 @@ Resources:
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri: .
+      CodeUri:
+        Bucket: robrose-code-packages/
+        Key: serverlesshack/blurOnS3Upload.zip
       Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
       MemorySize: 1280
       Timeout: 60
       Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref WatchBucket
+        - S3CrudPolicy:
+            BucketName: !Ref OutputBucket
         - Version: '2012-10-17'
           Statement:
-            - Effect: Allow
-              Action:
-                - 's3:GetObject'
-              Resource: !Sub 'arn:aws:s3:::${WatchBucket}/*'
-            - Effect: Allow
-              Action:
-                - 's3:PutObject'
-              Resource: !Sub 'arm:aws:s3:::${OutputBucket}/*'
             - Effect: Allow
               Action:
                 - 'rekognition:DetectFaces'
@@ -54,5 +43,4 @@ Resources:
       Environment:
         Variables:
           OUTPUT_BUCKET: !Ref OutputBucket
-          FILL_THRESHOLD: !Ref ConfThreshold
 
