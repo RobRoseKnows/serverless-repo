@@ -87,7 +87,7 @@ def lambda_handler(event, context):
 
         saved_to = save_image(img, img_format, "/tmp/out")
 
-        return upload_file(os.environ('OUTPUT_BUCKET'), key, saved_to)
+        return upload_file(os.getenv('OUTPUT_BUCKET'), key, saved_to)
 
     except Exception as e:
         print(e)
