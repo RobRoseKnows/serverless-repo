@@ -16,7 +16,7 @@ Parameters:
     Description: The size of the border surounding the black border. Not needed for reflect and replicate.
   KeypointDetectorMethod:
     Type: String
-    Default: FAST
+    Default: GFTT
     AllowedValues:
       - GFTT
       - BRISK
@@ -36,14 +36,14 @@ Resources:
   OutputBucket:
     Type: 'AWS::S3::Bucket'
 
-  rekognitionpython:
+  vidstabpython:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
       CodeUri:
         Bucket: robrose-code-packages/
-        Key: serverlesshack/blurOnS3Upload.zip
+        Key: serverlesshack/stabVideo.zip
       Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
       MemorySize: 1280
       Timeout: 60
@@ -52,12 +52,6 @@ Resources:
             BucketName: !Ref WatchBucket
         - S3CrudPolicy:
             BucketName: !Ref OutputBucket
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 'rekognition:DetectFaces'
-              Resource: '*'
       Events:
         ObjectCreatedBucketEvent:
           Type: S3
@@ -70,4 +64,6 @@ Resources:
       Environment:
         Variables:
           OUTPUT_BUCKET: !Ref OutputBucket
-
+          KP_METHOD: !Ref KeypointDetectorMethod
+          BORDER_TYPE: !Ref BorderType
+          BORDER_SIZE: !Ref BorderSize
