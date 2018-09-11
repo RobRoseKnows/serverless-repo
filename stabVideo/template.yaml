@@ -9,11 +9,26 @@ Parameters:
       - black
       - reflect
       - replicate
-    Description: The border that should
+    Description: The border that should be used when stabilizing the videos.
   BorderSize:
     Type: Number
     Default: 0
-    Description:
+    Description: The size of the border surounding the black border. Not needed for reflect and replicate.
+  KeypointDetectorMethod:
+    Type: String
+    Default: FAST
+    AllowedValues:
+      - GFTT
+      - BRISK
+      - DENSE
+      - FAST
+      - HARRIS
+      - MSER
+      - ORB
+      - SIFT
+      - SURF
+      - STAR
+    Description: Which method
 Resources:
   WatchBucket:
     Type: 'AWS::S3::Bucket'
