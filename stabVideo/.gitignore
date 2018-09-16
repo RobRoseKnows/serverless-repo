@@ -1,2 +1,7 @@
 *.egg-info/
 *.dist-info/
+cv2/
+numpy/
+imutils/
+vidstab/
+bin/

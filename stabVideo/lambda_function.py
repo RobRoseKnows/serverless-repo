@@ -61,7 +61,8 @@ def lambda_handler(event, context):
         raise VIDSTAB_ERROR
 
     try:
-
+        in_path = download_file(bucket, key)
+        out_path = "/tmp/out_{}".format(key)
         head_response = s3.head_object(Bucket=bucket, Key=key)
         size = head_response['ContentLength']
         content_type = head_response['ContentType']
@@ -78,7 +79,7 @@ def lambda_handler(event, context):
                     stabilizer.stabilize(input_path=in_path,
                                          output_path=out_path,
                                          border_type=BORDER_TYPE)
-
+                return upload_file(OUTPUT_BUCKET, key, out_path)
             else:
                 raise IOError("Object {} from bucket {} ".format(key, bucket) +
                               "is not a video.")
