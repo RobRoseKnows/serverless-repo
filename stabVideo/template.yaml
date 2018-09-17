@@ -1,7 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: An Amazon S3 trigger that uses rekognition APIs to detect faces and then blurs them.
+Description: An Amazon S3 trigger that uses OpenCV to stabilize videos.
 Parameters:
+  InBucketName:
+    Type: String
+    Description: Name of the bucket that should be watched for events.
+  OutBucketName:
+    Type: String
+    Description: Name of the bucket that should be used as the output.
   BorderType:
     Type: String
     Default: black
@@ -28,12 +34,6 @@ Parameters:
       - STAR
     Description: Which method
 Resources:
-  WatchBucket:
-    Type: 'AWS::S3::Bucket'
-
-  OutputBucket:
-    Type: 'AWS::S3::Bucket'
-
   vidstabpython:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -42,14 +42,14 @@ Resources:
       CodeUri:
         Bucket: robrose-serverless-repo/
         Key: dist/stabVideo.zip
-      Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
+      Description: An Amazon S3 trigger that uses OpenCV to stabilize videos.
       MemorySize: 1280
       Timeout: 60
       Policies:
         - S3ReadPolicy:
-            BucketName: !Ref WatchBucket
+            BucketName: !Ref InBucketName
         - S3CrudPolicy:
-            BucketName: !Ref OutputBucket
+            BucketName: !Ref OutBucketName
       Events:
         ObjectCreatedBucketEvent:
           Type: S3
@@ -60,7 +60,17 @@ Resources:
 
       Environment:
         Variables:
-          OUTPUT_BUCKET: !Ref OutputBucket
+          OUTPUT_BUCKET: !Ref OutBucketName
           KP_METHOD: !Ref KeypointDetectorMethod
           BORDER_TYPE: !Ref BorderType
           BORDER_SIZE: !Ref BorderSize
+
+  WatchBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref InBucketName
+
+  OutputBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref OutBucketName
