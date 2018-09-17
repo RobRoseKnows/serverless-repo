@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 OUTPUT_BUCKET = str(os.getenv('OUTPUT_BUCKET'))
-KP_METHOD = str(os.getenv('KP_METHOD'))
-BORDER_TYPE = str(os.getenv('BORDER_TYPE'))
-BORDER_SIZE = int(os.getenv('BORDER_SIZE'))
+KP_METHOD = str(os.getenv('KP_METHOD', 'GFTT'))
+BORDER_TYPE = str(os.getenv('BORDER_TYPE', 'black'))
+BORDER_SIZE = int(os.getenv('BORDER_SIZE', 0))
 
 MAX_SIZE = 240 * 1024 * 1024
 
