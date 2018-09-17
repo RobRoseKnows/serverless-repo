@@ -41,7 +41,7 @@ Resources:
       Runtime: python3.6
       CodeUri: s3://robrose-serverless-repo/dist/stabVideo.zip
       Description: An Amazon S3 trigger that uses OpenCV to stabilize videos.
-      MemorySize: 1280
+      MemorySize: 512
       Timeout: 60
       Policies:
         - S3ReadPolicy:

@@ -55,7 +55,7 @@ except ImportError as e:
 
 def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
-    key = urllib.unquote_plus(event['Records'][0]['s3']['object']['key'].encode('utf8'))
+    key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
 
     if VIDSTAB_ERROR is not None:
         raise VIDSTAB_ERROR
