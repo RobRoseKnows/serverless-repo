@@ -1,4 +1,4 @@
-# Adapted from: https://github.com/awslabs/serverless-application-model/blob/master/examples/apps/rekognition-python/lambda_function.py
+import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 logger.debug('Loading function...')
@@ -26,6 +26,7 @@ def detect_faces(bucket, key):
     logger.info("Calling rekognition with s3://{}/{}".format(bucket, key))
     response = rekognition.detect_faces(Image={"S3Object": {"Bucket": bucket, "Name": key}})
     logger.info("Called rekognition with s3://{}/{}".format(bucket, key))
+    logger.debug("response: {}".format(response))
     return response
 
 def download_file(bucket, key):
@@ -56,15 +57,18 @@ def draw_rectangles(img, faces):
 
     draw = ImageDraw.Draw(img)
 
+    im_width, im_height = img.size
+
     for face in faces:
-        x0 = face['BoundingBox']['Left']
-        y0 = face['BoundingBox']['Top']
-        width = face['BoundingBox']['Width']
-        height = face['BoundingBox']['Height']
+        x0 = (face['BoundingBox']['Left']) * im_width
+        y0 = (face['BoundingBox']['Top']) * im_height
+        width = (face['BoundingBox']['Width']) * im_width
+        height = (face['BoundingBox']['Height']) * im_height
         x1 = x0 + width
         y1 = y0 + height
 
         draw.rectangle([x0, y0, x1, y1], fill='black', outline='black')
+        logger.info("Drew rectangle at ({}, {}) to ({}, {})".format(x0, y0, x1, y1))
 
     return img
 
