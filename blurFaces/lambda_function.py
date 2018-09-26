@@ -1,13 +1,19 @@
 # Adapted from: https://github.com/awslabs/serverless-application-model/blob/master/examples/apps/rekognition-python/lambda_function.py
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
+logger.debug('Loading function...')
 
 import boto3
 import json
 import urllib
 import os
+import io
+
+logger.debug('Loading in pillow...')
 
 from PIL import Image, ImageDraw
 
-print('Loading function')
+logger.debug('Loading in boto3 functions.')
 
 rekognition = boto3.client('rekognition')
 s3 = boto3.client('s3')
@@ -17,15 +23,22 @@ s3 = boto3.client('s3')
 
 
 def detect_faces(bucket, key):
+    logger.info("Calling rekognition with s3://{}/{}".format(bucket, key))
     response = rekognition.detect_faces(Image={"S3Object": {"Bucket": bucket, "Name": key}})
+    logger.info("Called rekognition with s3://{}/{}".format(bucket, key))
     return response
 
 def download_file(bucket, key):
-    s3.download_file(bucket, key, '/tmp/img')
-    return '/tmp/img'
+    name = '/tmp/img'
+    logger.info("Downloading s3://{}/{} to {}".format(bucket, key, name))
+    s3.download_file(bucket, key, name)
+    logger.info("Downloaded image to {}".format(name))
+    return name
 
 def upload_file(bucket, key, local_path):
+    logger.info("Uploading {} to s3://{}/{}".format(local_path, bucket, key))
     response = s3.upload_file(local_path, bucket, key)
+    logger.info("Uploaded {} to s3://{}/{}".format(local_path, bucket, key))
     return response
 
 # --------------- PIL Methods -------------------
@@ -34,6 +47,8 @@ def load_image(img_location):
     with open(img_location, 'rb') as f:
         img = Image.open(io.BytesIO(f.read()))
         img_format = img.format
+
+    logger.info("Found image with format {}".format(img_format))
 
     return img, img_format
 
@@ -56,6 +71,7 @@ def draw_rectangles(img, faces):
 
 def save_image(img, img_format, location):
     img.save(location, img_format)
+    logger.info("Saved image of format {} to {}".format(img_format, location))
     return location
 
 # --------------- Main handler ------------------
@@ -69,7 +85,7 @@ def lambda_handler(event, context):
 
     # Get the object from the event
     bucket = event['Records'][0]['s3']['bucket']['name']
-    key = urllib.unquote_plus(event['Records'][0]['s3']['object']['key'].encode('utf8'))
+    key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
     try:
         # Calls rekognition DetectFaces API to detect faces in S3 object
         response = detect_faces(bucket, key)
@@ -90,7 +106,6 @@ def lambda_handler(event, context):
         return upload_file(os.getenv('OUTPUT_BUCKET'), key, saved_to)
 
     except Exception as e:
-        print(e)
-        print("Error processing object {} from bucket {}. ".format(key, bucket) +
-              "Make sure your object and bucket exist and your bucket is in the same region as this function.")
+        logger.exception("Error processing object {} from bucket {}. ".format(key, bucket) +
+                         "Make sure your object and bucket exist and your bucket is in the same region as this function.")
         raise e

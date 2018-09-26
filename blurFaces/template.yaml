@@ -27,7 +27,7 @@ Resources:
       Runtime: python3.6
       CodeUri: s3://robrose-serverless-repo/dist/blurFaces.zip
       Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
-      MemorySize: 256
+      MemorySize: 128
       Timeout: 60
       Policies:
         - S3ReadPolicy:
