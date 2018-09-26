@@ -1,22 +1,28 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: An Amazon S3 trigger that uses rekognition APIs to detect faces and then blurs them.
-
+Parameters:
+  InBucketName:
+    Type: String
+    Description: Name of the bucket that should be watched for events.
+  OutBucketName:
+    Type: String
+    Description: Name of the bucket that should be used as the output.
 Resources:
   WatchBucket:
     Type: 'AWS::S3::Bucket'
-
+    Properties:
+      BucketName: !Ref InBucketName
   OutputBucket:
     Type: 'AWS::S3::Bucket'
-
+    Properties:
+      BucketName: !Ref OutBucketName
   rekognitionpython:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: lambda_function.lambda_handler
       Runtime: python3.6
-      CodeUri:
-        Bucket: robrose-serverless-repo/
-        Key: dist/blurFaces.zip
+      CodeUri: s3://robrose-serverless-repo/dist/blurFaces.zip
       Description: An Amazon S3 trigger that uses rekognition APIs to detect faces
       MemorySize: 1280
       Timeout: 60
@@ -25,12 +31,7 @@ Resources:
             BucketName: !Ref WatchBucket
         - S3CrudPolicy:
             BucketName: !Ref OutputBucket
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 'rekognition:DetectFaces'
-              Resource: '*'
+        - RekognitionDetectOnlyPolicy: {}
       Events:
         ObjectCreatedBucketEvent:
           Type: S3
