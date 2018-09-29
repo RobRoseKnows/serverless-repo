@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An Api trigger to send GitHub Webhooks to an SNS topic.
+Parameters:
+  GitHubSecret:
+    Type: String
+    NoEcho: True
+    Description: The secret to be used in the HMAC
+  SnsTopicName:
+    Type: String
+    AllowedPattern: '^[A-Za-z0-9_-]+'
+    MaxLength: 256
+    Description: The SNS Topic the webhook should be pushed to.
+Resources:
+  webhookToSnsPython:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: .
+      Description: >-
+        An Api trigger to send GitHub Webhooks to an SNS topic.
+      MemorySize: 128
+      Timeout: 3
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref SnsTopicName
+      Events:
+        POSTHard:
+          Type: Api
+          Properties:
+            Path: /ghwebhook/
+            Method: post
+      Environment:
+        Variables:
+          SECRET: !Ref GitHubSecret
+          SNS_TOPIC: !Ref SnsTopicName
+  SNSTopic:
+    Type: 'AWS::SNS::Topic'
+    TopicName: !Ref SnsTopicName
