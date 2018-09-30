@@ -29,12 +29,12 @@ Resources:
         POSTHard:
           Type: Api
           Properties:
-            Path: /ghwebhook/
+            Path: /{proxy+}
             Method: post
       Environment:
         Variables:
           SECRET: !Ref GitHubSecret
-          SNS_TOPIC: !Ref SnsTopicName
+          SNS_TOPIC: !Ref SNSTopic
   SNSTopic:
     Type: 'AWS::SNS::Topic'
     TopicName: !Ref SnsTopicName
